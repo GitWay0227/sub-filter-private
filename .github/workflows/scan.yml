@@ -1,0 +1,45 @@
+name: scan
+on:
+  schedule:
+    - cron: "13,43 * * * *"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup mihomo/subconverter/yq
+        run: |
+          set -e
+          curl -sL -m 120 --retry 3 "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.32/mihomo-linux-amd64-v1.19.32.gz" | gzip -dc > mihomo
+          chmod +x mihomo && ./mihomo -v
+          curl -sL -m 120 --retry 3 "https://github.com/tindy2013/subconverter/releases/latest/download/subconverter_linux64.tar.gz" | tar xz
+          chmod +x subconverter/subconverter
+          ls subconverter/subconverter && echo "subconverter in place (-v enters server mode, skipping version check)"
+          sudo curl -sL -m 120 --retry 3 "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" -o /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq && yq --version
+      - name: Zombie scan
+        run: |
+          chmod +x scripts/scan.sh scripts/test-one.sh
+          scripts/scan.sh
+      # CN-vantage leg, failure-isolated: hard 12-min budget so a hung or slow
+      # cn-scan can never eat the L1/publish budget; any error preserves the
+      # previous cn-reachable.yaml and still publishes the L1 artifacts.
+      - name: CN reachability scan
+        run: |
+          chmod +x scripts/cn-scan.sh
+          timeout 720 scripts/cn-scan.sh || true
+      - name: Publish artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Artifacts go to a single-commit orphan branch: pool.yaml is ~2MB
+          # and would bloat main's history at 48 runs/day.
+          git checkout --orphan artifacts
+          git rm -rf --cached -q .
+          git add candidates.yaml pool.yaml clash.yaml cn-reachable.yaml
+          git commit -m "scan: $(grep -m1 '^# ' candidates.yaml | sed 's/^# //')"
+          git push -f origin HEAD:artifacts

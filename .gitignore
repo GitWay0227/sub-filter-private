@@ -1,0 +1,20 @@
+# L1 scan intermediates (scan.sh) - pool.yaml/candidates.yaml/clash.yaml are
+# published artifacts and intentionally NOT ignored.
+merged.yaml
+merged-ok.yaml
+dedup.json
+work.json
+w.json
+pass.txt
+pass.json
+candidates.json
+scan-config.yaml
+.scan/
+mihomo
+subconverter/
+
+# CN-leg intermediates (cn-scan.sh) - cn-reachable.yaml is published.
+.cn-scan/
+
+# runtime logs
+*.log
