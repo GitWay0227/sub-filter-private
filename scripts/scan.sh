@@ -31,14 +31,18 @@ with open('merged.yaml', encoding='utf-8') as f:
     for line in f:
         s = line.rstrip('\n')
         t = s.strip()
-        if t.startswith('- {') and t.endswith('}'):
-            try:
-                node = yaml.safe_load(t[2:])
-                if isinstance(node, dict) and node.get('name') and node.get('server') and node.get('port'):
-                    out.append('  - ' + yaml.safe_dump(node, default_flow_style=True, allow_unicode=True, width=10000, sort_keys=False).strip())
-                    continue
-            except Exception:
-                pass
+        if t.startswith('- {'):
+            # Node line: keep only when it closes, parses and has name/server/port.
+            # Any broken node line (unbalanced brace, unparseable) must be DROPPED,
+            # never passed through verbatim - one poisoned line makes go-yaml reject
+            # the whole merged-ok.yaml and kills the run (mfuu sub.yaml case).
+            if t.endswith('}'):
+                try:
+                    node = yaml.safe_load(t[2:])
+                    if isinstance(node, dict) and node.get('name') and node.get('server') and node.get('port'):
+                        out.append('  - ' + yaml.safe_dump(node, default_flow_style=True, allow_unicode=True, width=10000, sort_keys=False).strip())
+                except Exception:
+                    pass
             continue
         out.append(s)
 print('\n'.join(out))

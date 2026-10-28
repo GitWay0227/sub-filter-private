@@ -20,6 +20,6 @@ https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta-2.y
 https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/clash.yaml
 https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml
 https://raw.githubusercontent.com/ts-sf/fly/main/clash
-https://raw.githubusercontent.com/mfuu/FreeProxies/main/sub.yaml
+https://raw.githubusercontent.com/mfuu/FreeProxies/main/sub
 https://raw.githubusercontent.com/zueston/proxy-hub/main/out/clash.yaml
 https://raw.githubusercontent.com/xifan001-lab/clash-sub/main/clash.yaml
