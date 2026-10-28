@@ -25,6 +25,15 @@ jobs:
         run: |
           chmod +x scripts/scan.sh scripts/test-one.sh
           scripts/scan.sh
+      # Geo-exit leg, failure-isolated: measures each alive node's real exit IP
+      # country (8-min hard budget). On failure it preserves the previous
+      # geo.yaml and L1 artifacts still publish; emit-clash.sh then rebuilds
+      # clash.yaml so the subscription always carries the freshest geo groups.
+      - name: Geo exit scan
+        run: |
+          chmod +x scripts/geo-scan.sh scripts/emit-clash.sh
+          timeout 480 scripts/geo-scan.sh || true
+          scripts/emit-clash.sh
       # CN-vantage leg, failure-isolated: hard 12-min budget so a hung or slow
       # cn-scan can never eat the L1/publish budget; any error preserves the
       # previous cn-reachable.yaml and still publishes the L1 artifacts.
@@ -40,6 +49,6 @@ jobs:
           # and would bloat main's history at 48 runs/day.
           git checkout --orphan artifacts
           git rm -rf --cached -q .
-          git add candidates.yaml pool.yaml clash.yaml cn-reachable.yaml
+          git add candidates.yaml pool.yaml clash.yaml geo.yaml cn-reachable.yaml
           git commit -m "scan: $(grep -m1 '^# ' candidates.yaml | sed 's/^# //')"
           git push -f origin HEAD:artifacts

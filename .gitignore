@@ -16,5 +16,8 @@ subconverter/
 # CN-leg intermediates (cn-scan.sh) - cn-reachable.yaml is published.
 .cn-scan/
 
+# Geo-leg intermediates (geo-scan.sh) - geo.yaml is published.
+.geo-scan/
+
 # runtime logs
 *.log
