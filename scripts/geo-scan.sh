@@ -8,7 +8,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 DIR=.geo-scan
-CTRL="127.0.0.1:29190"
+CTRL="127.0.0.1:29090"   # must match cn-gen.py write_config_and_jobs controller hardcode
 SECRET="$(head -c 12 /dev/urandom | base64 | tr -d '=+/')"
 export SECRET
 # One listener per alive node (BASE_PORT + i); ip-api.com is 45 req/min per IP
