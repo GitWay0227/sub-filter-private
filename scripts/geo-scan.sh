@@ -13,8 +13,9 @@ SECRET="$(head -c 12 /dev/urandom | base64 | tr -d '=+/')"
 export SECRET
 # One listener per alive node (BASE_PORT + i); ip-api.com is 45 req/min per IP
 # but each request exits from a different node IP, so per-IP limits don't apply.
+# probe.sh (quoted heredoc) reads PROBE_TMO at runtime -> must be exported.
 PROBE_TMO="${GEO_PROBE_TMO:-10}"
-MAX_AGE_MIN="${GEO_MAX_AGE_MIN:-5}"
+export PROBE_TMO
 
 gen() { python3 scripts/cn-gen.py "$@"; }
 
