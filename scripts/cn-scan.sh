@@ -11,7 +11,12 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 DIR=.cn-scan
-CTRL="127.0.0.1:29090"
+# Own port triple: the geo leg runs immediately before this one on the same
+# runner and its mihomo needs a moment to release ~900 listeners. Sharing
+# ports let this leg's mihomo die on bind while the readiness probe was
+# answered by the previous leg's dying instance -> silent 0-probe runs.
+export CTRL_PORT=29190 MIXED_PORT=27891 BASE_PORT=21001
+CTRL="127.0.0.1:29190"
 SECRET="$(head -c 12 /dev/urandom | base64 | tr -d '=+/')"
 export SECRET
 CN_RE='中国|CN|China|Beijing|Shanghai|Guangzhou|Shenzhen|Hangzhou|Chengdu|Nanjing|Chongqing|Wuhan|Tianjin|Qingdao|北京|上海|广州|深圳|杭州|成都|南京|重庆|武汉|天津|青岛'
@@ -46,10 +51,11 @@ start_mihomo() {  # $1 = config path
   ./mihomo -d "$DIR" -f "$1" > "$DIR/mihomo.log" 2>&1 &
   M_PID=$!
   for _ in $(seq 1 30); do
+    kill -0 "$M_PID" 2>/dev/null || break
     curl -s -m 2 -H "Authorization: Bearer $SECRET" "http://$CTRL/version" >/dev/null 2>&1 && return 0
     sleep 1
   done
-  echo "cn-scan: mihomo failed to start"; return 1
+  echo "cn-scan: mihomo failed to start"; tail -3 "$DIR/mihomo.log" 2>/dev/null; return 1
 }
 stop_mihomo() {
   [ -n "$M_PID" ] && kill "$M_PID" 2>/dev/null

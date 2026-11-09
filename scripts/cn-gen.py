@@ -24,7 +24,11 @@ bloat the config and duplicates would make mihomo reject it).
 
 Jobs TSV columns:      port, probe_name, report_name, vp
 Probe result columns:  report_name, country, exit_ip, vp
-Env: SECRET (mihomo API secret), BASE_PORT (default 20001)
+Env: SECRET (mihomo API secret), BASE_PORT (default 20001),
+     CTRL_PORT (default 29090), MIXED_PORT (default 27890).
+Both scan legs run on the same runner; each sets its own three ports so a
+lingering mihomo from the previous leg cannot answer the next leg's
+readiness probe (that collision silently produced 0-probe CN legs).
 """
 import json
 import os
@@ -36,6 +40,8 @@ from datetime import datetime, timezone
 import yaml
 
 BASE_PORT = int(os.environ.get("BASE_PORT", "20001"))
+CTRL_PORT = int(os.environ.get("CTRL_PORT", "29090"))
+MIXED_PORT = int(os.environ.get("MIXED_PORT", "27890"))
 
 
 def load(path):
@@ -95,8 +101,8 @@ def with_defs(alive, defs_path, needed):
 
 def write_config_and_jobs(proxies, listeners, jobs, cfg_path, jobs_path):
     cfg = {
-        "mixed-port": 27890,
-        "external-controller": "127.0.0.1:29090",
+        "mixed-port": MIXED_PORT,
+        "external-controller": "127.0.0.1:%d" % CTRL_PORT,
         "secret": os.environ.get("SECRET", ""),
         "log-level": "error",
         "keep-alive-interval": 30,

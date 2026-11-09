@@ -8,7 +8,10 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 DIR=.geo-scan
-CTRL="127.0.0.1:29090"   # must match cn-gen.py write_config_and_jobs controller hardcode
+CTRL="127.0.0.1:29090"
+# Pin this leg's own port triple; cn-scan.sh uses 29190/27891/21001 so the two
+# legs can never answer each other's readiness probe.
+export CTRL_PORT=29090 MIXED_PORT=27890 BASE_PORT=20001
 SECRET="$(head -c 12 /dev/urandom | base64 | tr -d '=+/')"
 export SECRET
 # One listener per alive node (BASE_PORT + i); ip-api.com is 45 req/min per IP
@@ -28,7 +31,7 @@ fresh_placeholder() {
 fresh_placeholder
 mkdir -p "$DIR"
 M_PID=""
-trap '[ -n "$M_PID" ] && kill "$M_PID" 2>/dev/null; true' EXIT
+trap '[ -n "$M_PID" ] && { kill "$M_PID" 2>/dev/null; wait "$M_PID" 2>/dev/null; }; true' EXIT
 
 preserve() {
   if git fetch -q origin artifacts 2>/dev/null \
