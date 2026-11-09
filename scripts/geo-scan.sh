@@ -39,7 +39,7 @@ preserve() {
      && [ -s "$DIR/old.yaml" ] \
      && ! grep -q '^# status:' "$DIR/old.yaml"; then
     { echo "# preserved on $(date -u '+%F %T') UTC - original content follows"
-      cat "$DIR/old.yaml"; } > geo.yaml
+      grep -v '^# preserved on ' "$DIR/old.yaml"; } > geo.yaml
     echo "geo-scan: kept previous geo.yaml"
   else
     fresh_placeholder
