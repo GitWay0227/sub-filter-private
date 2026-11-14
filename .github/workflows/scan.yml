@@ -7,7 +7,10 @@ permissions:
   contents: write
 jobs:
   scan:
-    runs-on: ubuntu-latest
+    # Pin to 24.04: ubuntu-latest rolled to 26.04 on ~2026-11-13 and scan.sh
+    # dies silently (13s, no output, exit 1) on the new image. 24.04 LTS is
+    # supported until 2029.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
